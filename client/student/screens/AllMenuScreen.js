@@ -1,0 +1,261 @@
+import { View, Text, TextInput, ScrollView, Image, TouchableOpacity, Alert, Modal, Animated } from 'react-native'
+import React from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import * as Icon from "react-native-feather";
+import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
+import FeaturedTitle from '../components/featuredTitle';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import CartIcon from '../components/cartIcon';
+import * as SecureStore from 'expo-secure-store';
+import { MenuList, MenuSearch, UserAuthApi, UserDetails } from '../apis/student-api';
+import { Linking } from 'react-native';
+
+export default function AllMenuScreen() {
+
+    const navigation = useNavigation();
+
+    ////////////////////////////////////////////////////// USE REFS //////////////////////////////////////////////////////
+    const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+    ////////////////////////////////////////////////////// USE STATES //////////////////////////////////////////////////////
+    const [searchMenus, setSearchMenus] = useState([])
+    const [searchbox, setSearchBox] = useState(false);
+    const [refresh, setRefresh] = useState(false)
+    const [menus, setMenus] = useState([])
+    //UserDetails
+    const [user, setUser] = useState(null)
+    const [cart, setCart] = useState([])
+    const [cartTotal, setCartTotal] = useState(null)
+    //Modal
+    const [ reloadModalVisible, setReloadModalVisible ] = useState(true)
+
+    ////////////////////////////////////////////////////// USE FOCUS EFFECTS //////////////////////////////////////////////////////
+    useFocusEffect(
+        React.useCallback(() => {
+            async function fetchData(){
+                let token = await SecureStore.getItemAsync('UserAccessToken')
+                if (token) {
+                    const response = await UserAuthApi(token)
+                    if (!response.auth) {
+                        if (response.message) {
+                            Alert.alert('Blocked!', response.message, [
+                                {text: 'OK', onPress: () => navigation.navigate('Login')},
+                            ]);
+                        } else {
+                            navigation.navigate('Login')
+                        }
+                    } else {
+                        setUser(response.user_details)
+                    }
+                } else {
+                    navigation.navigate('Login')
+                }
+            }
+            fetchData()
+        }, [])
+    );
+
+    ////////////////////////////////////////////////////// USE EFFECTS //////////////////////////////////////////////////////
+    React.useEffect(() => {
+        async function fetchData(){
+            let token = await SecureStore.getItemAsync('UserAccessToken')
+            setReloadModalVisible(true)
+            const response = await MenuList(token)
+            setReloadModalVisible(false)
+            if (response.status == "success" ) {
+                setMenus(response.menus)
+            }else{
+                alert(response.message ? response.message : "Please go to the back and try agian")
+            }
+        }
+        fetchData()
+    },[])
+
+    React.useEffect(() => {
+        async function fetchData(){
+            let token = await SecureStore.getItemAsync('UserAccessToken')
+            if (user?.id) {
+                const response = await UserDetails(user.id, token)
+                if (response.status == "success" ) {
+                    setCart(response.user.cart)
+                    const total = response.user.cart.reduce((accumulator, currentValue) => {
+                        return accumulator + currentValue.item_total_price;
+                    }, 0);
+                    setCartTotal(total)
+                }else{
+                    alert(response.message ? response.message : "Please go to the back and try agian")
+                }
+            }
+        }
+        fetchData()
+    },[user, refresh])
+
+    React.useEffect(() => {
+        const startAnimation = () => {
+        Animated.loop(
+            Animated.timing(animatedValue, {
+            toValue: 1,
+            duration: 30000, // Adjust duration as needed
+            useNativeDriver: true,
+            })
+        ).start();
+        };
+    
+        startAnimation();
+    }, [animatedValue]);
+
+    ////////////////////////////////////////////////////// SEARCH //////////////////////////////////////////////////////
+    const search = async (text) => {
+        let token = await SecureStore.getItemAsync('UserAccessToken')
+        const response = await MenuSearch(text, token)
+        if (response.status == "success" ) {
+            setSearchMenus(response.menus)
+        }
+    }
+
+    ////////////////////////////////////////////////////// MAIN RETURN //////////////////////////////////////////////////////
+    return (
+        <>
+            <CartIcon cart={cart} cart_total={cartTotal}/>
+            <SafeAreaView className="bg-white" >
+                <StatusBar
+                    barStyle="dark-content" 
+                />
+                {/* <View className="justify-center items-center p-1">
+                    <Text className="text-lg font-bold">CAFE ARRIVAL</Text>
+                </View> */}
+            
+                {/* navbar */}
+                <View style={{ backgroundColor:"#ffc803" }} className="flex-row items-center space-x-2 px-4 py-2">
+                    <Image source={require('../assets/images/logo.png')} className="h-14 w-28"/>
+                    <View style={{ width: "83%", borderRadius: 50 }} className="flex-row space-x-2 items-center p-3 border border-gray-800">
+                        {/* First View */}
+                        <View className="flex-1">
+                            <View className="flex-row items-center space-x-1">
+                                <Icon.Search height="25" width="25" stroke="black" />
+                                <TextInput onChangeText={(text) => search(text)} onKeyPress={() => setSearchBox(true)} onBlur={() => setSearchBox(false)} placeholder='Dishes...' className="ml-2 flex-1 text-base" keyboardType='default' />
+                            </View>
+                        </View>
+
+                        {/* Second View */}
+                        <View className="flex-1">
+                            <View className="flex-row items-center space-x-1 border-0 border-l-2 pl-2 border-l-gray-500">
+                                <Icon.MapPin onPress={()=>{ navigation.navigate('Profile',) }} height="20" width="20" stroke="black" />
+                                <ScrollView horizontal={true}  showsHorizontalScrollIndicator={false}>
+                                    <View className="flex-row" style={{ overflow: 'hidden'}}>
+                                        {
+                                            user != null &&
+                                            <Animated.View style={{ flexDirection: 'row', transform: [{ translateX:animatedValue.interpolate({ inputRange: [0, 1], outputRange: [0, -500],}) }] }}>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
+                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}</Text>
+                                            </Animated.View>
+                                        }
+                                    </View>
+                                </ScrollView>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* searchbox */}
+                {
+                    searchbox &&
+                    <View style={{ width:"100%", top: 101 , zIndex:100 }} className="absolute items-center bg-white">
+                        {
+                            searchMenus.length > 0
+                            ?
+                            searchMenus.map(menu => (
+                                <TouchableOpacity key={menu._id} onPress={() => { navigation.navigate('Menu', menu) }} style={{ width:"100%", borderColor:"#c7c5c5" }} className="flex-row py-3 px-5 border-b">
+                                    <Image source={{ uri: menu.image.path }} className="h-12 w-12 rounded" />
+                                    <View style={{ width:"80%" }} className="ml-2 items-center flex-row">
+                                        <Text className="font-bold text-base">{menu.name}</Text>
+                                        <Text className="ml-auto rounded-full px-3 bg-green-600 text-white font-bold text-base">{menu.items.length}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                            :
+                            <Text className="text-gray-500 text-base font-bold text-center my-3">No items!</Text>
+                        }
+                    </View>
+                }
+
+                {/* selectbar */}
+                <View className="flex-row fixed bottom-0 left-0 right-0 bg-gray-900 p-1.5">
+                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Home') }}>
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/home.png')} className="h-6 w-6"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Home</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('AllCombo') }}>
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/offer.png')} className="h-6 w-6"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Offers</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center">
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/menu.png')} className="h-6 w-6"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Menu</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Profile') }}>
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/profile.png')} className="h-6 w-6"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Profile</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* main */}
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingBottom: 50
+                    }}
+                >
+                    {
+                        menus.length > 0 ?
+                        menus.map(menu => {
+                        return (
+                                <FeaturedTitle key={menu._id} menu={menu} combo={false} cart={cart} user_id={user?.id} refresh={refresh} setRefresh={setRefresh}/>
+                            )
+                        })
+                        :
+                        <View className="items-center bg-white py-40">
+                            <Icon.XCircle height="100" width="100" strokeWidth={2} stroke="#b0aeae"/>
+                            <Text style={{ fontWeight: '900', color:'#b0aeae' }} className="text-xl">No Menus</Text>
+                        </View>
+                    }
+
+                    {/* footer */}
+                    <View style={{backgroundColor: "#fce486"}} className="mb-16 justify-center px-4 py-6 items-center">
+                        <Image source={require('../assets/images/bikeGuy.png')} className="w-20 h-20 rounded-full" />
+                        <Text className="flex-1 pl-4 text-base text-black font-semibold">Open - 3:00 PM - 12:00 PM</Text>
+                        <Text className="flex-1 pl-4 text-xl text-black font-bold">Fast & Free Delivery</Text>
+                        <Text className="flex-1 pl-4 text-black">(Around 5 Km Only Delivery Available)</Text>
+                        <View className="flex-row space-x-6 mt-1">
+                            <TouchableOpacity onPress={() => Linking.openURL('tel:+918136946137')}>
+                                <Icon.Phone height="16" width="16" strokeWidth={3} stroke="black" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => Linking.openURL('mailto:risalkanu@gmail.com')}>
+                                <Icon.Mail height="16" width="16" strokeWidth={3} stroke="black" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+                <Modal
+                    visible={reloadModalVisible}
+                    transparent={true}
+                >
+                    <View style={{ backgroundColor:'rgba(255, 255, 255, 1)', top:72  }} className="flex-1 justify-center items-center bg-gray-500">
+                        <View style={{ width: 1000, height:1000, backgroundColor:'rgba(255, 255, 255, 0.1)'}} className="py-5 px-3 rounded justify-center items-center">
+                            <Image source={require('../assets/images/logo-reload.gif')} className="h-20 w-20" />
+                        </View>
+                    </View>
+                </Modal>
+            </SafeAreaView>
+        </>
+    )
+}

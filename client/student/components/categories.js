@@ -1,0 +1,37 @@
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
+import React from 'react'
+
+export default function Categories({menus, activeCategory, setActiveCategory}) {
+    return (
+        <View className="mt-4">
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="overflow-visible"
+            contentContainerStyle={{
+                paddingHorizontal: 15
+            }}
+        >
+            {
+                menus?.map((menu, index)=>{
+                    let isActive = index == activeCategory;
+                    let btnClass = isActive ? ' bg-gray-400' : ' bg-gray-700';
+                    let textClass = isActive ? ' font-semibold text-gray-100' : ' text-gray-400';
+                    return(
+                        <View key={menu._id} className="flex justify-center items-center mr-6">
+                            <TouchableOpacity 
+                                onPress={()=> setActiveCategory(index)}
+                                className={"p-1 rounded-full shadow"+ btnClass}
+                            >
+                                <Image style={{width: 45, height: 45, borderRadius:50}} source={{ uri: menu.image.path }} />
+                            </TouchableOpacity>
+                            <Text className={"text-sm "+textClass}>{menu.name}</Text>
+                        </View> 
+                    )
+                })
+            }
+            
+        </ScrollView>
+        </View>
+    )
+}
