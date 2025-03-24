@@ -42,7 +42,7 @@ export default function BottomNavbar({ now, setActiveCategory }) {
                 <TouchableOpacity
                 onPress={() => {
                     setActive("premium")
-                    navigation.navigate("AllCombo")
+                    navigation.navigate("AllMenu")
                 }}
                 style={{ width:"20%" }} className="justify-between items-center">
                     <Image style={{ tintColor: active == "offer" ? '#ffc803' : '#f7f7f7' }} className={ active == "offer" ? "h-9 w-9" : "h-7 w-7" } source={require('../assets/images/offer.png')} />

@@ -2,10 +2,10 @@ import { View, Text, TouchableOpacity, Image, Modal, ImageBackground, ToastAndro
 import React, {useState} from 'react'
 import * as Icon from "react-native-feather";
 import * as SecureStore from 'expo-secure-store';
-import { UserCartCreate } from '../apis/student-api';
 import { useFocusEffect } from '@react-navigation/native';
+import { StudentCartCreate } from '../apis/student-api';
 
-export default function DishRow({name, description, id, price, image, rating, rating_count, cart, user_id, refresh, setRefresh, stock}) {
+export default function DishRow({name, id, price, image, rating, cart, user_id, refresh, setRefresh, stock}) {
 
     ///////////////////////////////////////////////////// USE STATES //////////////////////////////////////////////////////
     const [quantity, setQuantity] = useState(0)
@@ -32,7 +32,7 @@ export default function DishRow({name, description, id, price, image, rating, ra
     const handleQuantity = async (count)=>{
         let token = await SecureStore.getItemAsync('UserAccessToken')
         setReloadModalVisible(true)
-        const response = await UserCartCreate({user_id, item_id:id, item_name:name, item_image:image.path, item_price:price, count}, token)
+        const response = await StudentCartCreate({_id: user_id, item_id:id, item_name:name, item_image:image.path, item_price:price, count}, token)
         if (response.status == "success") {
             setRefresh(!refresh)
         }
@@ -51,13 +51,11 @@ export default function DishRow({name, description, id, price, image, rating, ra
                     <View className="flex flex-1 space-y-2">
                         <View className="pl-3">
                             <Text className="text-xl">{name}</Text>
-                            <Text className="text-gray-700">{description}</Text>
                         </View>
                         <View className="pl-3 flex-row items-center space-x-1">
                             <Image source={require('../assets/images/fullStar.png')} className="h-4 w-4" />
                             <Text className="text-xs">
                                 <Text className="text-green-700">{rating}</Text>
-                                <Text className="text-gray-700"> ({rating_count})</Text>
                             </Text>
                         </View>
                         <View className="flex-row pl-3 justify-between items-center">
@@ -107,13 +105,11 @@ export default function DishRow({name, description, id, price, image, rating, ra
                     <View className="flex flex-1 space-y-2">
                         <View className="pl-3">
                             <Text className="text-xl">{name}</Text>
-                            <Text className="text-gray-700">{description}</Text>
                         </View>
                         <View className="pl-3 flex-row items-center space-x-1">
                             <Image style={{ tintColor:"gray" }} source={require('../assets/images/fullStar.png')} className="h-4 w-4" />
                             <Text className="text-xs">
                                 <Text className="text-green-700">{rating}</Text>
-                                <Text className="text-gray-700"> ({rating_count})</Text>
                             </Text>
                         </View>
                         <View className="flex-row pl-3 justify-between items-center">

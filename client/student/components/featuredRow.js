@@ -3,7 +3,7 @@ import React from 'react'
 import MenuCard from './menuCard';
 import { useNavigation } from '@react-navigation/native';
 
-export default function FeatureRow({menus, combo}) {
+export default function FeatureRow({menus}) {
 
     const navigation = useNavigation()
 
@@ -11,13 +11,13 @@ export default function FeatureRow({menus, combo}) {
         <View>
             <View className="flex-row justify-between items-center px-4">
                 <View>
-                    <Text className="font-bold text-white text-xl">{combo ? "Offers" : "Menus"}</Text>
+                    <Text className="font-bold text-black text-xl">Menus</Text>
                     {/* <Text className="text-gray-500 text-xs">
                         {description}
                     </Text> */}
                 </View>
                 
-                <TouchableOpacity onPress={()=>{ combo ? navigation.navigate('AllCombo') : navigation.navigate('AllMenu') }}>
+                <TouchableOpacity onPress={()=>{ navigation.navigate('AllMenu') }}>
                     <Text style={{color: "#999999"}} className="font-semibold">See All</Text>
                 </TouchableOpacity>
             </View>
@@ -33,17 +33,14 @@ export default function FeatureRow({menus, combo}) {
                 className="overflow-visible py-5"
             >
                 {
-                    menus.map(menu=>{
+                    menus.map((menu, index)=>{
                         return (
-                            <MenuCard
-                            key={menu._id}
-                            id={menu._id}
-                            image={menu.image}
-                            name={menu.name}
-                            rating={menu.rating}
-                            rating_count={menu.rating_count}
-                            old_price={menu.old_price}
-                            offer_price={menu.offer_price}
+                        <MenuCard
+                            key={index}
+                            id={menu.items[0]._id}
+                            image={menu.items[0].image}
+                            name={menu.category}
+                            rating={menu.items[0].rating}
                             items={menu.items}
                         />    
                         )

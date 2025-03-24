@@ -6,14 +6,14 @@ import * as Icon from "react-native-feather";
 import CartIcon from '../components/cartIcon';
 import ComboRow from '../components/comboRow';
 import * as SecureStore from 'expo-secure-store';
-import { UserAuthApi, UserDetails } from '../apis/student-api';
+import { StudentAuthApi, StudentDetails, UserDetails } from '../apis/student-api';
 import { useState } from 'react';
 
 export default function MenuScreen() {
     const navigation = useNavigation();
 
     ////////////////////////////////////////////////////// USE ROUTES //////////////////////////////////////////////////////
-    const {params: {id,  name, image, rating, old_price, offer_price, items, rating_count, stock}} = useRoute();
+    const {params: {id,  name, image, rating, items}} = useRoute();
 
     ////////////////////////////////////////////////////// USE STATES //////////////////////////////////////////////////////
     const [refresh, setRefresh] = useState(false)
@@ -28,7 +28,7 @@ export default function MenuScreen() {
             async function fetchData(){
                 let token = await SecureStore.getItemAsync('UserAccessToken')
                 if (token) {
-                    const response = await UserAuthApi(token)
+                    const response = await StudentAuthApi(token)
                     if (!response.auth) {
                         if (response.message) {
                             Alert.alert('Blocked!', response.message, [
@@ -52,11 +52,11 @@ export default function MenuScreen() {
     React.useEffect(() => {
         async function fetchData(){
             let token = await SecureStore.getItemAsync('UserAccessToken')
-            if (user?.id) {
-                const response = await UserDetails(user.id, token)
+            if (user?._id) {
+                const response = await StudentDetails(user._id, token)
                 if (response.status == "success" ) {
-                    setCart(response.user.cart)
-                    const total = response.user.cart.reduce((accumulator, currentValue) => {
+                    setCart(response.student.cart)
+                    const total = response.student.cart.reduce((accumulator, currentValue) => {
                         return accumulator + currentValue.item_total_price;
                     }, 0);
                     setCartTotal(total)
@@ -95,16 +95,15 @@ export default function MenuScreen() {
                                     className="h-4 w-4" />
                                 <Text className="text-xs">
                                     <Text className="text-green-700 font-bold">{rating}</Text>
-                                    <Text className="text-gray-700"> ( {rating_count} review )</Text>
                                 </Text>
                             </View>
-                            {
+                            {/* {
                                 offer_price &&
                                 <View className="flex-row items-center space-x-1">
                                     <Text className="text-gray-600 text-lg line-through font-bold">₹{old_price}</Text>
                                     <Text className="text-black text-lg font-bold"> ₹{offer_price}</Text>
                                 </View>
-                            }
+                            } */}
                         </View>
                     </View>
                 </View>
@@ -114,40 +113,23 @@ export default function MenuScreen() {
                         <Text className="px-4 py-4 text-2xl font-bold">Items</Text>
                         {/* dishes */}
                         {
-                            offer_price ?
-                                <ComboRow
-                                    key={id}
-                                    id={id}
-                                    old_price={old_price}
-                                    offer_price={offer_price}
-                                    items={items}
-                                    name={name}
-                                    image={image}
-                                    cart={cart}
-                                    user_id={user?.id}
-                                    refresh={refresh}
-                                    setRefresh={setRefresh}
-                                />
-                            :
-                                items.map(item=>{
-                                    return (
-                                        <DishRow
-                                            key={item._id}
-                                            id={item._id}
-                                            name={item.name}
-                                            description={item.description}
-                                            price={item.price}
-                                            image={item.image}
-                                            rating={item.rating}
-                                            rating_count={item.rating_count}
-                                            stock={item.stock}
-                                            cart={cart}
-                                            user_id={user?.id}
-                                            refresh={refresh}
-                                            setRefresh={setRefresh}
-                                        />
-                                    )
-                                })
+                            items.map(item=>{
+                                return (
+                                    <DishRow
+                                        key={item._id}
+                                        id={item._id}
+                                        name={item.name}
+                                        price={item.price}
+                                        image={item.image}
+                                        rating={item.rating}
+                                        stock={item.status === "IN STOCK" ? true : false}
+                                        cart={cart}
+                                        user_id={user?._id}
+                                        refresh={refresh}
+                                        setRefresh={setRefresh}
+                                    />
+                                )
+                            })
                         }
                     </View>
                     :

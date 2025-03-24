@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Icon from "react-native-feather";
-import { UserAuthApi, UserExistCheck } from '../apis/student-api';
+import { RegisterApi, StudentAuthApi } from '../apis/student-api';
 import * as SecureStore from 'expo-secure-store';
 
 // {
@@ -53,7 +53,7 @@ export default function RegisterScreen() {
                 let token = await SecureStore.getItemAsync('UserAccessToken')
                 if (token) {
                     setReloadModalVisible(true)
-                    const response = await UserAuthApi(token)
+                    const response = await StudentAuthApi(token)
                     setReloadModalVisible(false)
                     if (response.auth) {
                         navigation.navigate('Home')
@@ -70,36 +70,37 @@ export default function RegisterScreen() {
 
     ////////////////////////////////////////////////////// REGISTER SUMBIT //////////////////////////////////////////////////////
     const   handleSubmit = async () => {
-        navigation.navigate('Home')
-        // if(studentId !="" && fullName !="" && mobileNo !="" && password != "" && age !="" && year !="" && department !="" && gender != ""){
-        //     let reg_name =/^[a-zA-Z ]+$/;
-        //     setError("")
-        //     if(reg_name.test(fullName)){
-        //         setError("")
-        //         if(mobileNo.length == 10){
-        //             setError("")
-        //             if( password.length >= 8 ){
-        //                 setError("")
-        //                 const response = await RegisterApi({ studentId, fullName, mobileNo, password, age, year, department, gender })
-        //                 if (response.status == "success") {
-        //                     setError("")
-        //                     SecureStore.setItemAsync('UserAccessToken', response.token)
-        //                     navigation.navigate('Home')
-        //                 } else {
-        //                     setError(response.message)
-        //                 }
-        //             }else{
-        //                 setError('Minimum 8 character')
-        //             }
-        //         }else{  
-        //             setError('Please enter valid Phone Number')
-        //         }
-        //     }else{
-        //         setError('Please enter valid Name')
-        //     }
-        // }else{
-        //     setError('Please enter your all details')
-        // }
+        if(studentId !="" && fullName !="" && mobileNo !="" && password != "" && age !="" && year !="" && department !="" && gender != ""){
+            let reg_name =/^[a-zA-Z ]+$/;
+            setError("")
+            if(reg_name.test(fullName)){
+                setError("")
+                if(mobileNo.length == 10){
+                    setError("")
+                    if( password.length >= 8 ){
+                        setError("")
+                        const response = await RegisterApi({ student_id: studentId, username: fullName, mobile_no: mobileNo, password, age, year, department, gender, verify: true })
+                        console.log(response, "===resp");
+                        
+                        if (response.status == "success") {
+                            setError("")
+                            SecureStore.setItemAsync('UserAccessToken', response.token)
+                            navigation.navigate('Home')
+                        } else {
+                            setError(response.message)
+                        }
+                    }else{
+                        setError('Minimum 8 character')
+                    }
+                }else{  
+                    setError('Please enter valid Phone Number')
+                }
+            }else{
+                setError('Please enter valid Name')
+            }
+        }else{
+            setError('Please enter your all details')
+        }
     }
 
     const toggleCurrentYearDropdown = () => {
@@ -123,7 +124,7 @@ export default function RegisterScreen() {
     ////////////////////////////////////////////////////// MAIN RETURN //////////////////////////////////////////////////////
     return (
         render ?
-        <SafeAreaView style={{ backgroundColor: "#121212" }} >
+        <SafeAreaView style={{ backgroundColor: "#FFFFFF" }} >
             {/* <StatusBar
                 barStyle="light-content"
             /> */}
@@ -159,34 +160,34 @@ export default function RegisterScreen() {
             >
                 {/* register */}
                 <View style={{ minHeight: 480 }} className="p-3 mt-5">
-                    <Text className="font-bold text-xl uppercase pb-4 text-center text-white">Register</Text>
-                    <Text className="font-bold text-base text-gray-200">Student ID</Text>
+                    <Text className="font-bold text-xl uppercase pb-4 text-center text-black">Register</Text>
+                    <Text className="font-bold text-base text-gray-800">Student ID</Text>
                     <TextInput
-                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200"
+                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800"
                         placeholderTextColor="#A0A0A0"
                         placeholder='Enter your student id  -  eg:AKIF23484'
                         onChangeText={(value) => setStudentId(value)}
                     />
-                    <Text className="font-bold text-base text-gray-200">Full Name</Text>
+                    <Text className="font-bold text-base text-gray-800">Full Name</Text>
                     <TextInput
-                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200"
+                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800"
                         placeholderTextColor="#A0A0A0"
                         placeholder='Enter your full name'
                         onChangeText={(value) => setFullName(value)}
                     />
-                    <Text className="font-bold text-base text-gray-200">Mobile No</Text>
+                    <Text className="font-bold text-base text-gray-800">Mobile No</Text>
                     <TextInput
                         keyboardType='numeric'
-                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200"
+                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800"
                         placeholderTextColor="#A0A0A0"
                         maxLength={10}
                         placeholder='Enter your mobile no'
                         onChangeText={(value) => setMobileNo(value)}
                     />
-                    <Text className="font-bold text-base text-gray-200">Password</Text>
+                    <Text className="font-bold text-base text-gray-800">Password</Text>
                     <View className="relative">
                         <TextInput
-                            className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200"
+                            className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800"
                             placeholderTextColor="#A0A0A0"
                             placeholder='Enter new password'
                             secureTextEntry={toggle}
@@ -196,22 +197,22 @@ export default function RegisterScreen() {
                             {toggle ? <Icon.Eye height="14" width="14" stroke="white"/> : <Icon.EyeOff height="14" width="14" stroke="white"/>}
                         </TouchableOpacity>
                     </View>
-                    <Text className="font-bold text-base text-gray-200">Age</Text>
+                    <Text className="font-bold text-base text-gray-800">Age</Text>
                     <TextInput
                         keyboardType='numeric'
-                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200"
+                        className="mb-2 p-2 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800"
                         placeholderTextColor="#A0A0A0"
                         maxLength={2}
                         placeholder='Enter your age'
                         onChangeText={(value) => setAge(value)}
                     />
-                    <Text className="font-bold text-base text-gray-200">Current Year</Text>
+                    <Text className="font-bold text-base text-gray-800">Current Year</Text>
                     <View className="relative">
                         <TouchableOpacity
                             onPress={toggleCurrentYearDropdown}
-                            className="mb-2 px-2 py-3 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200 flex-row justify-between items-center"
+                            className="mb-2 px-2 py-3 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800 flex-row justify-between items-center"
                         >
-                            <Text className="text-gray-200 text-sm">
+                            <Text className="text-gray-800 text-sm">
                                 {year || 'Select your current year'}
                             </Text>
                             <Text className="text-gray-400">{isYearDropdownOpen ? '▲' : '▼'}</Text>
@@ -220,27 +221,27 @@ export default function RegisterScreen() {
                         {/* Dropdown list */}
                         {isYearDropdownOpen && (
                             <View className="absolute rounded-lg mt-9 w-full z-10 max-h-50 overflow-y-auto">
-                                <View className="absolute border border-zinc-600 bg-zinc-800 rounded-lg mt-2 w-full z-10 max-h-50">
+                                <View className="absolute border border-zinc-600 bg-zinc-200 rounded-lg mt-2 w-full z-10 max-h-50">
                                     {years.map((item) => (
                                         <TouchableOpacity
                                             key={item}
                                             onPress={() => selectYear(item)}
                                             className="p-4"
                                         >
-                                            <Text className="text-gray-200 text-sm">{item}</Text>
+                                            <Text className="text-gray-800 text-sm">{item}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             </View>
                         )}
                     </View>
-                    <Text className="font-bold text-base text-gray-200">Department</Text>
+                    <Text className="font-bold text-base text-gray-800">Department</Text>
                     <View className="relative">
                         <TouchableOpacity
                             onPress={toggleDepartmentDropdown}
-                            className="mb-2 px-2 py-3 rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200 flex-row justify-between items-center"
+                            className="mb-2 px-2 py-3 rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800 flex-row justify-between items-center"
                         >
-                            <Text className="text-gray-200 text-sm">
+                            <Text className="text-gray-800 text-sm">
                                 {department || 'Select your department'}
                             </Text>
                             <Text className="text-gray-400">{isDepartmentDropdownOpen ? '▲' : '▼'}</Text>
@@ -249,55 +250,55 @@ export default function RegisterScreen() {
                         {/* Dropdown list */}
                         {isDepartmentDropdownOpen && (
                             <View className="absolute rounded-lg mt-9 w-full z-10 max-h-50 overflow-y-auto">
-                                <View className="absolute border border-zinc-600 bg-zinc-800 rounded-lg mt-2 w-full z-10 max-h-50">
+                                <View className="absolute border border-zinc-600 bg-zinc-200 rounded-lg mt-2 w-full z-10 max-h-50">
                                     {departments.map((item) => (
                                         <TouchableOpacity
                                             key={item}
                                             onPress={() => selectDepartment(item)}
                                             className="p-4"
                                         >
-                                            <Text className="text-gray-200 text-sm">{item}</Text>
+                                            <Text className="text-gray-800 text-sm">{item}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             </View>
                         )}
                     </View>
-                    <Text className="font-bold text-base text-gray-200">Gender</Text>
+                    <Text className="font-bold text-base text-gray-800">Gender</Text>
                     <View className="w-full flex-row">
                         <View style={{ width:"30%" }} className="flex-row justify-center items-center">
                             {
                                 gender == "male" ?
-                                <TouchableOpacity onPress={() => setGender('male')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Male</Text>
+                                <TouchableOpacity onPress={() => setGender('male')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Male</Text>
                                 </TouchableOpacity>
                                 :
-                                <TouchableOpacity onPress={() => setGender('male')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Male</Text>
+                                <TouchableOpacity onPress={() => setGender('male')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Male</Text>
                                 </TouchableOpacity>
                             }
                         </View>
                         <View style={{ width:"30%" }} className="flex-row justify-center items-center mx-5">
                             {
                                 gender == "female" ?
-                                <TouchableOpacity onPress={() => setGender('female')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Female</Text>
+                                <TouchableOpacity onPress={() => setGender('female')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Female</Text>
                                 </TouchableOpacity>
                                 :
-                                <TouchableOpacity onPress={() => setGender('female')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Female</Text>
+                                <TouchableOpacity onPress={() => setGender('female')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Female</Text>
                                 </TouchableOpacity>
                             }
                         </View>
                         <View style={{ width:"30%" }} className="flex-row justify-center items-center">
                             {
                                 gender == "other" ?
-                                <TouchableOpacity onPress={() => setGender('other')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Other</Text>
+                                <TouchableOpacity onPress={() => setGender('other')} className="flex-row rounded-lg border border-zinc-500 bg-zinc-700 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Other</Text>
                                 </TouchableOpacity>
                                 :
-                                <TouchableOpacity onPress={() => setGender('other')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-800 font-semibold text-gray-200 h-11 w-full justify-center items-center">
-                                    <Text className="text-base text-white">Other</Text>
+                                <TouchableOpacity onPress={() => setGender('other')} className="flex-row rounded-lg border border-zinc-600 bg-zinc-200 font-semibold text-gray-800 h-11 w-full justify-center items-center">
+                                    <Text className="text-base text-black">Other</Text>
                                 </TouchableOpacity>
                             }
                         </View>

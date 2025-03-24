@@ -1,16 +1,18 @@
 import Student from "../model/student-schema.js";
 import Order from "../model/order-schema.js";
+import Menu from "../model/menu-schema.js";
 
 //////////////////////////////////////////////////////  STUDENT  //////////////////////////////////////////////////////
 
-// export async function studentDetails(req, res) {
-//     try {
-//         const student = await Student.findById(req.query._id)
-//         res.json({ status: "success", student })
-//     } catch (error) {
-//         res.json({ status: "failed", message: "Code error" })
-//     }
-// }
+export async function studentDetails(req, res) {
+    try {
+        console.log(req.query);
+        const student = await Student.findById(req.query._id)
+        res.json({ status: "success", student })
+    } catch (error) {
+        res.json({ status: "failed", message: "Code error" })
+    }
+}
 
 export async function studentList(req, res) {
     try {
@@ -98,5 +100,85 @@ export async function studentPaymentDues(req, res) {
         res.json({ status: "success", due_orders })
     } catch (error) {
         res.json({ status: "failed", message: "Code error" })
+    }
+}
+
+///////////// CART //////////////
+
+export async function createStudentCart(req, res) {
+    try {
+        const student = await Student.findById(req.body._id)
+        let cart
+        for (const obj of student.cart) {
+            if (obj.item_id.toString() === req.body.item_id.toString()) {
+                cart = obj
+                break;
+            }
+        }
+        
+        if (cart) {
+            if (cart.quantity <= 1 && req.body.count == -1) {
+                await Student.updateOne({_id: req.body._id},{
+                    $pull:{
+                        cart:{
+                            item_id:req.body.item_id,
+                        }
+                    }
+                })
+            } else {
+                await Student.updateOne({_id:req.body._id, "cart.item_id": req.body.item_id},{
+                    $set:{
+                        "cart.$.quantity": req.body.count == 1 ? cart.quantity + 1 : cart.quantity - 1,
+                        "cart.$.item_total_price": req.body.count == 1 ? cart.item_total_price + req.body.item_price : cart.item_total_price - req.body.item_price
+                    }
+                })
+            }
+        } else {
+            await Student.updateOne({_id :req.body._id},{
+                $push:{
+                    cart:{
+                        item_id:req.body.item_id,
+                        item_name:req.body.item_name,
+                        item_image:req.body.item_image,
+                        item_total_price:req.body.item_price,
+                        quantity:1
+                    }
+                }
+            })
+        }
+        res.json({ status: "success" })
+    } catch (error) {
+        res.json({ status: "failed", message: "Code error" })
+    }
+}
+
+export async function deleteStudentCart(req, res) {
+    try {
+        await Student.updateOne({_id:req.query._id},{
+            $pull:{
+                cart:{
+                    _id:req.query.cart_id,
+                }
+            }
+        })
+        res.json({ status: "success" })
+    } catch (error) {
+        res.json({ status: "failed", message: "Code error" })
+    }
+}
+
+export async function checkStockCart(req, res) {
+    try {
+        const student = await Student.findById(req.query._id)
+        for (const obj of student.cart) {
+            const menu = await Menu.findOne({ _id: obj.item_id, status: "OUT_STOCK" })
+            if (menu) {
+                res.json({status:"success", no_stock_item: menu.name})
+                break
+            }
+        }
+        res.json({status:"success" })
+    } catch (error) {
+        res.json(false)
     }
 }

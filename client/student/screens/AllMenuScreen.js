@@ -8,21 +8,19 @@ import FeaturedTitle from '../components/featuredTitle';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import CartIcon from '../components/cartIcon';
 import * as SecureStore from 'expo-secure-store';
-import { MenuList, MenuSearch, UserAuthApi, UserDetails } from '../apis/student-api';
+import { MenuList, MenuSearch, StudentAuthApi, StudentDetails } from '../apis/student-api';
 import { Linking } from 'react-native';
 
 export default function AllMenuScreen() {
 
     const navigation = useNavigation();
 
-    ////////////////////////////////////////////////////// USE REFS //////////////////////////////////////////////////////
-    const animatedValue = React.useRef(new Animated.Value(0)).current;
-
     ////////////////////////////////////////////////////// USE STATES //////////////////////////////////////////////////////
     const [searchMenus, setSearchMenus] = useState([])
     const [searchbox, setSearchBox] = useState(false);
     const [refresh, setRefresh] = useState(false)
     const [menus, setMenus] = useState([])
+    const [allMenus, setAllMenus] = useState([])
     //UserDetails
     const [user, setUser] = useState(null)
     const [cart, setCart] = useState([])
@@ -36,7 +34,7 @@ export default function AllMenuScreen() {
             async function fetchData(){
                 let token = await SecureStore.getItemAsync('UserAccessToken')
                 if (token) {
-                    const response = await UserAuthApi(token)
+                    const response = await StudentAuthApi(token)
                     if (!response.auth) {
                         if (response.message) {
                             Alert.alert('Blocked!', response.message, [
@@ -46,7 +44,7 @@ export default function AllMenuScreen() {
                             navigation.navigate('Login')
                         }
                     } else {
-                        setUser(response.user_details)
+                        setUser(response.student_details)
                     }
                 } else {
                     navigation.navigate('Login')
@@ -64,7 +62,23 @@ export default function AllMenuScreen() {
             const response = await MenuList(token)
             setReloadModalVisible(false)
             if (response.status == "success" ) {
-                setMenus(response.menus)
+                const groupedMenus = response.menus.reduce((acc, item) => {
+                    const { _id, category, name, price, image, status, rating } = item;
+                    
+                    if (!acc[category]) {
+                        acc[category] = {
+                        category,
+                        items: []
+                        };
+                    }
+                    
+                    acc[category].items.push({ _id, name, price, image, status, rating });
+                    
+                    return acc;
+                }, {});
+                const result = Object.values(groupedMenus);
+                setMenus(result)
+                setAllMenus(response.menus)
             }else{
                 alert(response.message ? response.message : "Please go to the back and try agian")
             }
@@ -75,11 +89,11 @@ export default function AllMenuScreen() {
     React.useEffect(() => {
         async function fetchData(){
             let token = await SecureStore.getItemAsync('UserAccessToken')
-            if (user?.id) {
-                const response = await UserDetails(user.id, token)
+            if (user?._id) {
+                const response = await StudentDetails(user._id, token)
                 if (response.status == "success" ) {
-                    setCart(response.user.cart)
-                    const total = response.user.cart.reduce((accumulator, currentValue) => {
+                    setCart(response.student.cart)
+                    const total = response.student.cart.reduce((accumulator, currentValue) => {
                         return accumulator + currentValue.item_total_price;
                     }, 0);
                     setCartTotal(total)
@@ -91,27 +105,23 @@ export default function AllMenuScreen() {
         fetchData()
     },[user, refresh])
 
-    React.useEffect(() => {
-        const startAnimation = () => {
-        Animated.loop(
-            Animated.timing(animatedValue, {
-            toValue: 1,
-            duration: 30000, // Adjust duration as needed
-            useNativeDriver: true,
-            })
-        ).start();
-        };
-    
-        startAnimation();
-    }, [animatedValue]);
-
     ////////////////////////////////////////////////////// SEARCH //////////////////////////////////////////////////////
-    const search = async (text) => {
-        let token = await SecureStore.getItemAsync('UserAccessToken')
-        const response = await MenuSearch(text, token)
-        if (response.status == "success" ) {
-            setSearchMenus(response.menus)
+    const search = async (value) => {
+        if (value) {
+            const lowercase_value = value.toLowerCase();
+            const filterd_menus = allMenus.filter(menu => menu.name.toLowerCase().includes(lowercase_value));
+            setSearchMenus(filterd_menus)
+            setRefresh(!refresh)
+        } else {
+            setSearchMenus(allMenus)
         }
+    }
+  
+    const searchClick = (item_id, item) => {
+        const menu = menus.find(category => 
+            category.items.some(item => item._id === item_id)
+        );
+        navigation.navigate('Menu', {id: item_id, name: menu.category, image: item.image, rating: item.rating, items: menu.items})
     }
 
     ////////////////////////////////////////////////////// MAIN RETURN //////////////////////////////////////////////////////
@@ -128,39 +138,13 @@ export default function AllMenuScreen() {
             
                 {/* navbar */}
                 <View style={{ backgroundColor:"#ffc803" }} className="flex-row items-center space-x-2 px-4 py-2">
-                    <Image source={require('../assets/images/logo.png')} className="h-14 w-28"/>
-                    <View style={{ width: "83%", borderRadius: 50 }} className="flex-row space-x-2 items-center p-3 border border-gray-800">
+                    <Image source={require('../assets/images/logo.png')} className="h-12 w-24 rounded-full"/>
+                    <View style={{ width: "72%", borderRadius: 50 }} className="flex-row space-x-2 items-center p-3 border border-gray-800">
                         {/* First View */}
                         <View className="flex-1">
                             <View className="flex-row items-center space-x-1">
                                 <Icon.Search height="25" width="25" stroke="black" />
                                 <TextInput onChangeText={(text) => search(text)} onKeyPress={() => setSearchBox(true)} onBlur={() => setSearchBox(false)} placeholder='Dishes...' className="ml-2 flex-1 text-base" keyboardType='default' />
-                            </View>
-                        </View>
-
-                        {/* Second View */}
-                        <View className="flex-1">
-                            <View className="flex-row items-center space-x-1 border-0 border-l-2 pl-2 border-l-gray-500">
-                                <Icon.MapPin onPress={()=>{ navigation.navigate('Profile',) }} height="20" width="20" stroke="black" />
-                                <ScrollView horizontal={true}  showsHorizontalScrollIndicator={false}>
-                                    <View className="flex-row" style={{ overflow: 'hidden'}}>
-                                        {
-                                            user != null &&
-                                            <Animated.View style={{ flexDirection: 'row', transform: [{ translateX:animatedValue.interpolate({ inputRange: [0, 1], outputRange: [0, -500],}) }] }}>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}   ||   </Text>
-                                                <Text className="text-gray-900 font-extrabold text-base">{user?.address.landmark}, {user?.address.locality}</Text>
-                                            </Animated.View>
-                                        }
-                                    </View>
-                                </ScrollView>
                             </View>
                         </View>
                     </View>
@@ -174,11 +158,11 @@ export default function AllMenuScreen() {
                             searchMenus.length > 0
                             ?
                             searchMenus.map(menu => (
-                                <TouchableOpacity key={menu._id} onPress={() => { navigation.navigate('Menu', menu) }} style={{ width:"100%", borderColor:"#c7c5c5" }} className="flex-row py-3 px-5 border-b">
+                                <TouchableOpacity key={menu._id} onPress={() => { searchClick(menu._id, menu) }} style={{ width:"100%", borderColor:"#c7c5c5" }} className="flex-row py-3 px-5 border-b">
                                     <Image source={{ uri: menu.image.path }} className="h-12 w-12 rounded" />
                                     <View style={{ width:"80%" }} className="ml-2 items-center flex-row">
                                         <Text className="font-bold text-base">{menu.name}</Text>
-                                        <Text className="ml-auto rounded-full px-3 bg-green-600 text-white font-bold text-base">{menu.items.length}</Text>
+                                        {/* <Text className="ml-auto rounded-full px-3 bg-green-600 text-white font-bold text-base">{menu.items.length}</Text> */}
                                     </View>
                                 </TouchableOpacity>
                             ))
@@ -193,10 +177,6 @@ export default function AllMenuScreen() {
                     <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Home') }}>
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/home.png')} className="h-6 w-6"/>
                         <Text style={{ color:"#ffc803" }} className="font-bold">Home</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('AllCombo') }}>
-                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/offer.png')} className="h-6 w-6"/>
-                        <Text style={{ color:"#ffc803" }} className="font-bold">Offers</Text>
                     </TouchableOpacity>
                     <TouchableOpacity className="flex-1 items-center">
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/menu.png')} className="h-6 w-6"/>
@@ -217,9 +197,9 @@ export default function AllMenuScreen() {
                 >
                     {
                         menus.length > 0 ?
-                        menus.map(menu => {
+                        menus.map((menu, index) => {
                         return (
-                                <FeaturedTitle key={menu._id} menu={menu} combo={false} cart={cart} user_id={user?.id} refresh={refresh} setRefresh={setRefresh}/>
+                                <FeaturedTitle key={index} menu={menu} cart={cart} user_id={user?._id} refresh={refresh} setRefresh={setRefresh}/>
                             )
                         })
                         :
@@ -230,16 +210,16 @@ export default function AllMenuScreen() {
                     }
 
                     {/* footer */}
-                    <View style={{backgroundColor: "#fce486"}} className="mb-16 justify-center px-4 py-6 items-center">
-                        <Image source={require('../assets/images/bikeGuy.png')} className="w-20 h-20 rounded-full" />
-                        <Text className="flex-1 pl-4 text-base text-black font-semibold">Open - 3:00 PM - 12:00 PM</Text>
-                        <Text className="flex-1 pl-4 text-xl text-black font-bold">Fast & Free Delivery</Text>
-                        <Text className="flex-1 pl-4 text-black">(Around 5 Km Only Delivery Available)</Text>
+                    <View style={{backgroundColor: "#f5d45d" }} className="justify-center px-4 pt-6 pb-24 items-center">
+                        <Image source={require('../assets/images/ready-dish.gif')} className="w-20 h-20 rounded-full" />
+                        <Text className="flex-1 pl-4 text-base text-black font-semibold">Open - 8:00 PM - 10:00 PM</Text>
+                        <Text className="flex-1 pl-4 text-xl text-black font-bold">Fresh & Quality Foods</Text>
+                        <Text className="flex-1 pl-4 text-black">Experience the taste of freshly prepared dishes</Text>
                         <View className="flex-row space-x-6 mt-1">
-                            <TouchableOpacity onPress={() => Linking.openURL('tel:+918136946137')}>
+                            <TouchableOpacity onPress={() => Linking.openURL('tel:+919562696976')}>
                                 <Icon.Phone height="16" width="16" strokeWidth={3} stroke="black" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => Linking.openURL('mailto:risalkanu@gmail.com')}>
+                            <TouchableOpacity onPress={() => Linking.openURL('mailto:akifrahman24409@gmail.com')}>
                                 <Icon.Mail height="16" width="16" strokeWidth={3} stroke="black" />
                             </TouchableOpacity>
                         </View>

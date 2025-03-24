@@ -7,7 +7,7 @@ export default function CartIcon({cart, cart_total}) {
   
   if(cart.length <= 0) return null;
   return (
-    <View className="absolute bottom-16 mb-2 w-full z-50">
+    <View className="absolute bottom-2 mb-2 w-full z-50">
         <TouchableOpacity 
           style={{backgroundColor: "#ffc803"}}
           onPress={()=> navigation.navigate('Cart', cart)}

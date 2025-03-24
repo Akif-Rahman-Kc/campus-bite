@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import * as Icon from "react-native-feather";
 import * as SecureStore from 'expo-secure-store';
-import { CartStockCheck, UserAuthApi, UserCartDelete, UserDetails } from '../apis/student-api';
+import { CartStockCheck, StudentAuthApi, StudentCartDelete, StudentDetails } from '../apis/student-api';
 
 export default function CartScreen() {
 
@@ -32,7 +32,7 @@ export default function CartScreen() {
             async function fetchData(){
                 let token = await SecureStore.getItemAsync('UserAccessToken')
                 if (token) {
-                    const response = await UserAuthApi(token)
+                    const response = await StudentAuthApi(token)
                     if (!response.auth) {
                         if (response.message) {
                             Alert.alert('Blocked!', response.message, [
@@ -42,7 +42,7 @@ export default function CartScreen() {
                             navigation.navigate('Login')
                         }
                     } else {
-                        setUser(response.user_details)
+                        setUser(response.student_details)
                     }
                 } else {
                     navigation.navigate('Login')
@@ -56,11 +56,11 @@ export default function CartScreen() {
     React.useEffect(() => {
         async function fetchData(){
             let token = await SecureStore.getItemAsync('UserAccessToken')
-            if (user?.id) {
-                const response = await UserDetails(user.id, token)
+            if (user?._id) {
+                const response = await StudentDetails(user._id, token)
                 if (response.status == "success" ) {
-                    setCart(response.user.cart)
-                    const total = response.user.cart.reduce((accumulator, currentValue) => {
+                    setCart(response.student.cart)
+                    const total = response.student.cart.reduce((accumulator, currentValue) => {
                         return accumulator + currentValue.item_total_price;
                     }, 0);
                     setCartTotal(total)
@@ -75,9 +75,9 @@ export default function CartScreen() {
     ////////////////////////////////////////////////////// REMOVE CART ITEM //////////////////////////////////////////////////////
     const removeCartItem = async (cart_id) => {
         let token = await SecureStore.getItemAsync('UserAccessToken')
-        if (user?.id) {
+        if (user?._id) {
             setReloadModalVisible(true)
-            const response = await UserCartDelete(user.id, cart_id, token)
+            const response = await StudentCartDelete(user._id, cart_id, token)
             setReloadModalVisible(false)
             if (response.status == "success" ) {
                 setRefresh(!refresh)
@@ -90,27 +90,28 @@ export default function CartScreen() {
     ////////////////////////////////////////////////////// PLACE ORDER //////////////////////////////////////////////////////
     const placeOrder = async () => {
         let token = await SecureStore.getItemAsync('UserAccessToken')
-        if (user?.id) {
+        if (user?._id) {
             setReloadModalVisible(true)
-            const response = await CartStockCheck(user.id, token)
+            const response = await CartStockCheck(user._id, token)
             setReloadModalVisible(false)
-            if (response.status == "success" ) {
-                if (response.no_stock_item != "") {
+            if (response.status == "success") {
+                if (response.no_stock_item) {
                     Alert.alert('Stock Out!', `${response.no_stock_item} not available now please remove that item`, [
                         {text: 'OK', onPress: () => console.log("ok")},
                     ]);
                 } else {
-                    Alert.alert('Note', 'Now only available Cash on Delivery', [
-                        {
-                            text: 'Cancel',
-                            onPress: () => console.log('Cancel Pressed'),
-                            style: 'cancel',
-                        },
-                        {text: 'Order Placed', onPress: () => ok()},
-                    ]);
-                    async function ok(){
-                        navigation.navigate('PreparingOrder', {cart, cart_total:cartTotal, user_id:user?.id, address:user?.address.landmark + ", " + user?.address.locality + ", " + user?.address.district})
-                    }
+                    // Alert.alert('Note', 'Are you sure to confirm this order', [
+                    //     {
+                    //         text: 'Cancel',
+                    //         onPress: () => console.log('Cancel Pressed'),
+                    //         style: 'cancel',
+                    //     },
+                    //     {text: 'Order Placed', onPress: () => ok()},
+                    // ]);
+                    // async function ok(){
+                        
+                    // }
+                    navigation.navigate('PreparingOrder', {cart, cart_total:cartTotal, _id:user?._id})
                 }
             }else{
                 alert(response.message ? response.message : "Please go to the back and try agian")
@@ -143,8 +144,8 @@ export default function CartScreen() {
 
                 {/* delivery time */}
                 <View style={{backgroundColor: "#fce486"}} className="flex-row px-4 items-center">
-                    <Image source={require('../assets/images/bikeGuy.png')} className="w-20 h-20 rounded-full" />
-                    <Text className="flex-1 pl-4">Deliver in 30-40 minutes</Text>
+                    <Image source={require('../assets/images/ready-dish.gif')} className="w-20 h-20 rounded-full" />
+                    <Text className="flex-1 pl-4">You can get with in 5 minutes</Text>
                     {/* <TouchableOpacity>
                         <Text style={{color: "#555555"}} className="font-bold">Change</Text>
                     </TouchableOpacity> */}
@@ -195,10 +196,6 @@ export default function CartScreen() {
                     <View className="flex-row justify-between">
                         <Text className="text-gray-800">Subtotal</Text>
                         <Text className="text-gray-800">₹{cartTotal}</Text>
-                    </View>
-                    <View className="flex-row justify-between">
-                        <Text className="text-gray-800">Delivery Fee</Text>
-                        <Text className="text-green-800">Free</Text>
                     </View>
                     <View className="flex-row justify-between">
                         <Text className="font-extrabold text-lg">Order Total</Text>

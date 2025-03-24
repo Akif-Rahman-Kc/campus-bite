@@ -46,9 +46,9 @@ export const StudentAuthApi = async (token) => {
 
 ////////////////////////////////////////////////////////// USER //////////////////////////////////////////////////////////
 
-export const StudentDetails = async (id, token) => {
+export const StudentDetails = async (_id, token) => {
     try {
-        const {data} = await StudentApi.get(`/student/details?id=${id}`, {headers:{"studenttoken":token}})
+        const {data} = await StudentApi.get(`/student/details?_id=${_id}`, {headers:{"studenttoken":token}})
         return data;
     } catch (error) {
         return false
@@ -79,9 +79,20 @@ export const StudentCartCreate = async (formData, token) => {
 
 //////////////////////////////////////////////////////////
 
-export const StudentCartDelete = async (student_id, cart_id, token) => {
+export const StudentCartDelete = async (_id, cart_id, token) => {
     try {
-        const {data} = await StudentApi.delete(`/student/cart/delete?student_id=${student_id}&&cart_id=${cart_id}`, {headers:{"studenttoken":token}})
+        const {data} = await StudentApi.delete(`/student/cart/delete?_id=${_id}&&cart_id=${cart_id}`, {headers:{"studenttoken":token}})
+        return data;
+    } catch (error) {
+        return false
+    }
+}
+
+//////////////////////////////////////////////////////////
+
+export const CartStockCheck = async (_id, token) => {
+    try {
+        const {data} = await StudentApi.get(`/student/cart/stock-check?_id=${_id}`, {headers:{"studenttoken":token}})
         return data;
     } catch (error) {
         return false
@@ -156,9 +167,9 @@ export const OrderDelete = async (id, token) => {
 
 //////////////////////////////////////////////////////////
 
-export const OrderRating = async (formData, token) => {
+export const OrderPayment = async (formData, token) => {
     try {
-        const {data} = await StudentApi.post('/order/rating', formData, {headers:{"studenttoken":token}})
+        const {data} = await StudentApi.post('/order/payment', formData, {headers:{"studenttoken":token}})
         return data;
     } catch (error) {
         return false

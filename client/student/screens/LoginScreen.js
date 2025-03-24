@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Icon from "react-native-feather";
-import { LoginApi, UserAuthApi } from '../apis/student-api';
+import { LoginApi, StudentAuthApi } from '../apis/student-api';
 import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
@@ -32,7 +32,7 @@ export default function LoginScreen() {
                 let token = await SecureStore.getItemAsync('UserAccessToken');
                 if (token) {
                     setReloadModalVisible(true);
-                    const response = await UserAuthApi(token);
+                    const response = await StudentAuthApi(token);
                     setReloadModalVisible(false);
                     if (response.auth) {
                         navigation.navigate('Home');
@@ -49,14 +49,15 @@ export default function LoginScreen() {
 
     ////////////////////////////////////////////////////// LOGIN SUMBIT //////////////////////////////////////////////////////
     const handleSubmit = async () => {
-        navigation.navigate('Home');
         if (studentId !== "" && password !== "") {
             setError("");
             setReloadModalVisible(true);
-            const response = await LoginApi({ studentId, password });
+            const response = await LoginApi({ student_id: studentId, password });
             setTimeout(() => {
                 setReloadModalVisible(false);
             }, 1000);
+            console.log(response, "===response");
+            
             if (response.status === "success") {
                 setError("");
                 SecureStore.setItemAsync('UserAccessToken', response.token);
@@ -138,9 +139,9 @@ export default function LoginScreen() {
                                 {toggle ? <Icon.Eye height="14" width="14" stroke="black" /> : <Icon.EyeOff height="14" width="14" stroke="black" />}
                             </TouchableOpacity>
                         </View>
-                        <TouchableOpacity className="ml-auto" onPress={() => navigation.navigate('ForgotPwd')}>
+                        {/* <TouchableOpacity className="ml-auto" onPress={() => navigation.navigate('ForgotPwd')}>
                             <Text className="text-blue-700">Forgot password</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                         <TouchableOpacity style={{ backgroundColor: "#ffc803" }} className="rounded-lg py-2.5 mt-10 mb-3" onPress={handleSubmit}>
                             <Text className="font-extrabold text-center text-base">LOGIN</Text>
                         </TouchableOpacity>
@@ -178,8 +179,8 @@ export default function LoginScreen() {
                     visible={reloadModalVisible}
                     transparent={true}
                 >
-                    <View style={{ backgroundColor: 'rgba(0, 0, 0, 1)' }} className="flex-1 justify-center items-center">
-                        <View style={{ width: 1000, height: 1000, backgroundColor: 'rgba(0, 0, 0, 0.1)' }} className="py-5 px-3 rounded justify-center items-center">
+                    <View style={{ backgroundColor:'rgba(255, 255, 255, 1)', top:72 }} className="flex-1 justify-center items-center bg-gray-500">
+                        <View style={{ width: 1000, height:1000, backgroundColor:'rgba(255, 255, 255, 0.1)'}} className="py-5 px-3 rounded justify-center items-center">
                             <Image source={require('../assets/images/logo-reload.gif')} className="h-20 w-20" />
                         </View>
                     </View>
@@ -190,8 +191,8 @@ export default function LoginScreen() {
                 visible={reloadModalVisible}
                 transparent={true}
             >
-                <View style={{ backgroundColor: 'rgba(0, 0, 0, 1)' }} className="flex-1 justify-center items-center">
-                    <View style={{ width: 1000, height: 1000, backgroundColor: 'rgba(0, 0, 0, 0.1)' }} className="py-5 px-3 rounded justify-center items-center">
+                <View style={{ backgroundColor:'rgba(255, 255, 255, 1)', top:72 }} className="flex-1 justify-center items-center bg-gray-500">
+                    <View style={{ width: 1000, height:1000, backgroundColor:'rgba(255, 255, 255, 0.1)'}} className="py-5 px-3 rounded justify-center items-center">
                         <Image source={require('../assets/images/logo-reload.gif')} className="h-20 w-20" />
                     </View>
                 </View>

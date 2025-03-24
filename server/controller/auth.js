@@ -31,6 +31,8 @@ export async function studentRegister(req, res) {
             res.json({ status: "failed", message: "Please enter your all details" })
         }
     } catch (error) {
+        console.log(error);
+        
         res.json({ status: "failed", message: "Code error" })
     }
 }

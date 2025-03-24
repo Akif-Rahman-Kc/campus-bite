@@ -15,17 +15,17 @@ export default function Categories({menus, activeCategory, setActiveCategory}) {
             {
                 menus?.map((menu, index)=>{
                     let isActive = index == activeCategory;
-                    let btnClass = isActive ? ' bg-gray-400' : ' bg-gray-700';
-                    let textClass = isActive ? ' font-semibold text-gray-100' : ' text-gray-400';
+                    let btnClass = isActive ? ' bg-gray-600' : ' bg-gray-200';
+                    let textClass = isActive ? ' font-semibold text-gray-800' : ' text-gray-500';
                     return(
-                        <View key={menu._id} className="flex justify-center items-center mr-6">
+                        <View key={index} className="flex justify-center items-center mr-9">
                             <TouchableOpacity 
                                 onPress={()=> setActiveCategory(index)}
                                 className={"p-1 rounded-full shadow"+ btnClass}
                             >
-                                <Image style={{width: 45, height: 45, borderRadius:50}} source={{ uri: menu.image.path }} />
+                                <Image style={{width: 45, height: 45, borderRadius:50}} source={{ uri: menu.items[0].image.path }} />
                             </TouchableOpacity>
-                            <Text className={"text-sm "+textClass}>{menu.name}</Text>
+                            <Text className={"text-sm "+textClass}>{menu.category}</Text>
                         </View> 
                     )
                 })

@@ -1,3 +1,3 @@
 import axios from "axios";
 
-export const StudentApi = axios.create({baseURL:"https://cafe-arrival.vercel.app/"})
+export const StudentApi = axios.create({baseURL:"http://192.168.139.83:4000/"})

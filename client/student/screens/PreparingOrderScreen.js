@@ -9,7 +9,7 @@ export default function PreparingOrderScreen() {
     const navigation = useNavigation();
 
     ////////////////////////////////////////////////////// USE ROUTES //////////////////////////////////////////////////////
-    const {params:{ cart, cart_total, user_id, address}} = useRoute();
+    const {params:{ cart, cart_total, _id}} = useRoute();
 
     ////////////////////////////////////////////////////// USE STATES //////////////////////////////////////////////////////
     const [block, setBlock] = useState(true)
@@ -19,8 +19,8 @@ export default function PreparingOrderScreen() {
       async function fetchData(){
         if (block) {
           let token = await SecureStore.getItemAsync('UserAccessToken')
-          const response = await OrderCreate({cart, cart_total, user_id, address}, token)
-          if (response.status == "failed" ) {
+          const response = await OrderCreate({cart, cart_total, _id}, token)
+          if (response.status == "failed") {
             navigation.navigate('Home');
           } else{
             setBlock(false)
@@ -36,7 +36,7 @@ export default function PreparingOrderScreen() {
     },[])
   return (
     <View className="flex-1 bg-white justify-center items-center">
-      <Image source={require('../assets/images/delivery.gif')} className="h-80 w-80" />
+      <Image source={require('../assets/images/ready-dish.gif')} className="h-80 w-80" />
     </View>
   )
 }

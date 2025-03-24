@@ -58,16 +58,16 @@ const LandingPage = () => {
                 ></div>
 
                 {/* Content */}
-                <div className="relative flex">
+                <div className="relative grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div
                         onClick={() => handleSubmit('college')}
-                        className="flex w-72 h-40 mr-3 justify-center items-center border-2 border-yellow-500 hover:bg-yellow-500 text-white hover:text-black rounded-lg px-10 py-10 font-bold text-lg uppercase"
+                        className="flex w-72 h-40 ml-6 justify-center items-center border-2 border-yellow-500 hover:bg-yellow-500 text-white hover:text-black rounded-lg px-10 py-10 font-bold text-lg uppercase"
                     >
                         <h1>College</h1>
                     </div>
                     <div
                         onClick={() => handleSubmit('canteen')}
-                        className="flex w-72 h-40 ml-3 justify-center items-center border-2 border-yellow-500 hover:bg-yellow-500 text-white hover:text-black rounded-lg px-10 py-10 font-bold text-lg uppercase"
+                        className="flex w-72 h-40 ml-6 justify-center items-center border-2 border-yellow-500 hover:bg-yellow-500 text-white hover:text-black rounded-lg px-10 py-10 font-bold text-lg uppercase"
                     >
                         <h1>Canteen</h1>
                     </div>
