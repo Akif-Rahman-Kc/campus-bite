@@ -87,6 +87,7 @@ export async function studentPaymentDues(req, res) {
             if (payment_pending_orders && payment_pending_orders.length > 0) {
                 const total_amount = payment_pending_orders.reduce((sum, item) => sum + item.cart_total, 0);
                 const data = {
+                    "_id": student._id,
                     "student_id": student.student_id,
                     "name": student?.username,
                     "mobile_no": student?.mobile_no,

@@ -6,7 +6,7 @@ import { faCopy, faBell, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { formatDistanceToNow } from 'date-fns';
 import PopupAlert from "../components/PopupAlert";
 import { useNavigate } from "react-router-dom";
-import { CanteenAuthApi, CanteenStudentPaymentDues } from "../apis/canteen";
+import { CanteenAuthApi, CanteenNotificationCreate, CanteenStudentPaymentDues } from "../apis/canteen";
 import { CollegeAuthApi, CollegeStudentPaymentDues } from "../apis/college";
 
 const PaymentDuesPage = () => {
@@ -224,6 +224,41 @@ const PaymentDuesPage = () => {
         }
     };
 
+    // create notification
+    const createNotification = async (student_id, type) => {
+        let title = "";
+        let message = "";
+        switch (type) {
+            case "🟥":
+                title = `🔴 Urgent`
+                message = `Your payment is overdue! Please pay immediately to avoid penalties.`;
+                break;
+            case "🟨":
+                title = `🟡 Reminder`
+                message = `Your payment is due soon. Kindly clear your dues before the deadline.`;
+                break;
+            case "⬜️":
+                title = `⚪ Info`
+                message = `Payment window is open. Please check your dues and pay at your convenience.`;
+                break;
+            default:
+                title = `⚪ Info`
+                message = `Payment window is open. Please check your dues and pay at your convenience.`;
+        }
+
+        if (admin === "canteen") {
+            const token = localStorage.getItem("canteentoken")
+            const response = await CanteenNotificationCreate(token, {student_id, title, message})
+            if (response && response.status === "success") {
+                triggerAlert()
+            } else {
+                alert(response?.message)
+            }
+        } else {
+            alert("You dont have access for this one")
+        }
+    }
+
     // return
     return (
         <>
@@ -316,7 +351,7 @@ const PaymentDuesPage = () => {
                                         <td className="border text-xs border-gray-300 w-1/12 px-4 py-2">
                                             <div className="w-full flex justify-center">
                                                 <a href="tel:+919562696976"><FontAwesomeIcon className="mt-1 mr-2" icon={faPhone} color="#60A5FA" size="md" /></a>
-                                                <FontAwesomeIcon onClick={triggerAlert} className="mt-1 ml-2" icon={faBell} color="#60A5FA" size="md" />
+                                                <FontAwesomeIcon onClick={() => createNotification(item._id, markFinding(parseInt(item.due_start_date)))} className="mt-1 ml-2" icon={faBell} color="#60A5FA" size="md" />
                                             </div>
                                         </td>
                                     </tr>

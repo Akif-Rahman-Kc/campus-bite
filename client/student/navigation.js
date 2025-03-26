@@ -13,6 +13,7 @@ import CartScreen from './screens/CartScreen';
 import PreparingOrderScreen from './screens/PreparingOrderScreen';
 import SuccessScreen from './screens/SuccessScreen';
 import PaymentScreen from './screens/PaymentScreen';
+import NotificationScreen from './screens/NotificationScreen';
 const Stack = createNativeStackNavigator();
 
 export default function Navigation() {
@@ -30,6 +31,7 @@ export default function Navigation() {
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="AllMenu" component={AllMenuScreen} />
+            <Stack.Screen name="Notification" component={NotificationScreen} />
             <Stack.Screen name="Order" component={OrderScreen} />
             <Stack.Screen name="Payment" options={{ presentation: 'fullScreenModal', headerShown: false }} component={PaymentScreen} />
             <Stack.Screen name="Cart" options={{ presentation: 'modal', headerShown: false }} component={CartScreen} />

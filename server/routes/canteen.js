@@ -6,6 +6,7 @@ import { canteenAuth, canteenLogin } from '../controller/auth.js';
 import { studentList, studentPaymentDues } from '../controller/student.js';
 import { menuCreate, menuDelete, menuDetails, menuList, menuStatusUpdate, menuUpdate } from '../controller/menu.js';
 import { orderCreate, orderList, orderStatusUpdate } from '../controller/order.js';
+import { notificationCreate } from '../controller/notification.js';
 
 ///////////////// Multer /////////////////
 const storage = multer.diskStorage({});
@@ -40,5 +41,8 @@ router.delete('/menu/delete', canteenJWT, menuDelete)
 // Order
 router.get('/order/list', canteenJWT, orderList)
 router.patch('/order/update-status', canteenJWT, orderStatusUpdate)
+
+// Notification
+router.post('/notification/create', canteenJWT, notificationCreate)
 
 export default router;

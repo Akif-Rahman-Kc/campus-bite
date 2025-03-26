@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
-import { MenuList, StudentAuthApi, StudentDetails } from '../apis/student-api';
+import { MenuList, NotificationList, StudentAuthApi, StudentDetails } from '../apis/student-api';
 import { Linking } from 'react-native';
 
 export default function ProfileScreen() {
@@ -20,6 +20,8 @@ export default function ProfileScreen() {
     const [searchbox, setSearchBox] = useState(false);
     const [ selected, setSelected ] = useState("option1")
     const [refresh, setRefresh] = useState(false)
+    const [notifications, setNotifications] = useState([])
+    const [notiCount, setNotiCount] = useState(0)
     //UserDetails
     const [user, setUser] = useState(null)
     const [userDetails, setUserDetails] = useState(null)
@@ -93,6 +95,25 @@ export default function ProfileScreen() {
             }
             fetchData()
         },[])
+    );
+
+    useFocusEffect(
+        React.useCallback(() => {
+            async function fetchData(){
+                let token = await SecureStore.getItemAsync('UserAccessToken')
+                if (user?._id) {
+                    const response = await NotificationList(user?._id, token)
+                    if (response.status == "success") {
+                        const unReadCount = response.notifications.filter(noti => noti.status === "UN_READ").length;
+                        setNotiCount(unReadCount)
+                        setNotifications(response.notifications)
+                    }else{
+                        alert(response.message ? response.message : "Please go to the back and try agian")
+                    }
+                }
+            }
+            fetchData()
+        },[user])
     );
 
     ////////////////////////////////////////////////////// USE EFFECTS //////////////////////////////////////////////////////
@@ -202,6 +223,19 @@ export default function ProfileScreen() {
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/menu.png')} className="h-6 w-6"/>
                         <Text style={{ color:"#ffc803" }} className="font-bold">Menu</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Notification', {notification_array: notifications}) }}>
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/notification.png')} className="h-6 w-6 relative"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Notification</Text>
+                        {
+                            notiCount > 0 &&
+                            (
+                            <View style={{ bottom: 30, right: 35 }} className="absolute bg-red-700 rounded-full py-0.5 px-1.5">
+                                <Text style={{ color:"#ffc803", fontSize: 8.5 }} className="font-bold">{notiCount}</Text>
+                            </View>
+                            )
+                            
+                        }
+                    </TouchableOpacity>
                     <TouchableOpacity className="flex-1 items-center">
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/profile.png')} className="h-6 w-6"/>
                         <Text style={{ color:"#ffc803" }} className="font-bold">Profile</Text>
@@ -223,12 +257,6 @@ export default function ProfileScreen() {
                             <TouchableOpacity style={{ width:"100%" }} onPress={()=>{ navigation.navigate('Order') }} className="mr-2 flex-row py-1.5 rounded border-2 items-center justify-center border-green-700">
                                 <Icon.Archive height="16" strokeWidth={3} width="16" stroke="#047857" />
                                 <Text className="ml-2 font-bold text-green-700 uppercase">View Orders</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View className="flex-row items-center mt-3 px-4">
-                            <TouchableOpacity style={{ width:"100%" }} onPress={()=>{ navigation.navigate('Order') }} className="mr-2 flex-row py-1.5 rounded border-2 items-center justify-center border-blue-700">
-                                <Icon.Bell height="16" strokeWidth={3} width="16" stroke="#1D4ED8" />
-                                <Text className="ml-2 font-bold text-blue-700 uppercase">Notifications</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="flex-row items-center mt-2 px-4">

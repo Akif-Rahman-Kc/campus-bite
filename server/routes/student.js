@@ -6,6 +6,7 @@ import { studentAuth, studentLogin, studentRegister } from '../controller/auth.j
 import { orderCreate, orderListByStudentId, orderPayment } from '../controller/order.js';
 import { menuList } from '../controller/menu.js';
 import { checkStockCart, createStudentCart, deleteStudentCart, studentDetails } from '../controller/student.js';
+import { notificationListByStudentId, notificationStatusUpdate } from '../controller/notification.js';
 
 ///////////////// Multer /////////////////
 const storage = multer.diskStorage({});
@@ -39,5 +40,9 @@ router.post('/order/payment', studentJWT, orderPayment)
 
 // Menu
 router.get('/menu/list', studentJWT, menuList)
+
+// Notification
+router.get('/notification/list', studentJWT, notificationListByStudentId)
+router.patch('/notification/status-update', studentJWT, notificationStatusUpdate)
 
 export default router;

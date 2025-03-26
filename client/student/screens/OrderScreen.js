@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
-import { MenuList, OrderDelete, OrderList, OrderRating, StudentAuthApi } from '../apis/student-api';
+import { MenuList, NotificationList, OrderDelete, OrderList, OrderRating, StudentAuthApi } from '../apis/student-api';
 import moment from 'moment';
 import { Linking } from 'react-native';
 
@@ -24,6 +24,8 @@ export default function OrderScreen() {
     const [searchMenus, setSearchMenus] = useState([])
     const [refresh, setRefresh] = useState(false)
     const [searchbox, setSearchBox] = useState(false);
+    const [notifications, setNotifications] = useState([])
+    const [notiCount, setNotiCount] = useState(0)
     //UserDetails
     const [user, setUser] = useState(null)
     //Modal
@@ -88,6 +90,25 @@ export default function OrderScreen() {
             }
             fetchData()
         },[])
+    );
+
+    useFocusEffect(
+        React.useCallback(() => {
+            async function fetchData(){
+                let token = await SecureStore.getItemAsync('UserAccessToken')
+                if (user?._id) {
+                    const response = await NotificationList(user?._id, token)
+                    if (response.status == "success") {
+                        const unReadCount = response.notifications.filter(noti => noti.status === "UN_READ").length;
+                        setNotiCount(unReadCount)
+                        setNotifications(response.notifications)
+                    }else{
+                        alert(response.message ? response.message : "Please go to the back and try agian")
+                    }
+                }
+            }
+            fetchData()
+        },[user])
     );
 
     ////////////////////////////////////////////////////// USE EFFECTS //////////////////////////////////////////////////////
@@ -200,6 +221,19 @@ export default function OrderScreen() {
                     <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('AllMenu') }}>
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/menu.png')} className="h-6 w-6"/>
                         <Text style={{ color:"#ffc803" }} className="font-bold">Menu</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Notification', {notification_array: notifications}) }}>
+                        <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/notification.png')} className="h-6 w-6 relative"/>
+                        <Text style={{ color:"#ffc803" }} className="font-bold">Notification</Text>
+                        {
+                            notiCount > 0 &&
+                            (
+                            <View style={{ bottom: 30, right: 35 }} className="absolute bg-red-700 rounded-full py-0.5 px-1.5">
+                                <Text style={{ color:"#ffc803", fontSize: 8.5 }} className="font-bold">{notiCount}</Text>
+                            </View>
+                            )
+                            
+                        }
                     </TouchableOpacity>
                     <TouchableOpacity className="flex-1 items-center" onPress={()=>{ navigation.navigate('Profile') }}>
                         <Image style={{ tintColor:"#ffc803" }} source={require('../assets/images/profile.png')} className="h-6 w-6"/>

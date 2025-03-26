@@ -120,3 +120,14 @@ export const CanteenOrderStatusUpdate = async (token, form_data) => {
         return false
     }
 }
+
+////////////////////////////////////////////////////////// NOTIFICATION //////////////////////////////////////////////////////////
+
+export const CanteenNotificationCreate = async (token, form_data) => {
+    try {
+        const { data } = await CanteenApi.post('/notification/create', form_data, { headers: { "canteentoken": token } })
+        return data;
+    } catch (error) {
+        return false
+    }
+}

@@ -121,17 +121,6 @@ export const MenuSearch = async (value, token) => {
     }
 }
 
-////////////////////////////////////////////////////////// COMBO //////////////////////////////////////////////////////////
-
-export const ComboList = async (token) => {
-    try {
-        const {data} = await StudentApi.get('/combo/list', {headers:{"studenttoken":token}})
-        return data;
-    } catch (error) {
-        return false
-    }
-}
-
 ////////////////////////////////////////////////////////// ORDER //////////////////////////////////////////////////////////
 
 export const OrderCreate = async (formData, token) => {
@@ -170,6 +159,28 @@ export const OrderDelete = async (id, token) => {
 export const OrderPayment = async (formData, token) => {
     try {
         const {data} = await StudentApi.post('/order/payment', formData, {headers:{"studenttoken":token}})
+        return data;
+    } catch (error) {
+        return false
+    }
+}
+
+////////////////////////////////////////////////////////// NOTIFICATION //////////////////////////////////////////////////////////
+
+export const NotificationList = async (student_id, token) => {
+    try {
+        const {data} = await StudentApi.get(`/notification/list?student_id=${student_id}`, {headers:{"studenttoken":token}})
+        return data;
+    } catch (error) {
+        return false
+    }
+}
+
+//////////////////////////////////////////////////////////
+
+export const NotificationStatusUpdate = async (formData, token) => {
+    try {
+        const {data} = await StudentApi.patch('/notification/status-update', formData, {headers:{"studenttoken":token}})
         return data;
     } catch (error) {
         return false
